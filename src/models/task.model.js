@@ -1,30 +1,21 @@
-const mongoose = require("mongoose");
-// I don't want to remove a task so I only change status and modifyDate of an entry
-const taskSchema = mongoose.Schema({
-    userId: {
-        type: String,
-        required: true,
-    },
-    title: {
-        type: String,
-    },
-    completed: {
-        type: Boolean,
-        default: false,
-    },
-    active: {
-        type: Boolean,
-        default: true,
-    },
-    createDate: {
-        type: Date,
-        default: Date.now(),
-    },
-    modifyDate: {
-        type: Date,
-        default: Date.now(),
-    }
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db');
+const User = require('./user.model');
+
+const Task = sequelize.define('Task', {
+  title: { type: DataTypes.STRING, allowNull: false },
+  description: { type: DataTypes.TEXT },
+  notes: { type: DataTypes.TEXT },
+  date: { type: DataTypes.DATEONLY },
+  time: { type: DataTypes.TIME },
+  duration: { type: DataTypes.INTEGER },
+  completed: { type: DataTypes.BOOLEAN, defaultValue: false },
+  active: { type: DataTypes.BOOLEAN, defaultValue: true },
+}, {
+  timestamps: true,
 });
 
-const Task = mongoose.model("Task", taskSchema);
+Task.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Task, { foreignKey: 'userId' });
+
 module.exports = Task;

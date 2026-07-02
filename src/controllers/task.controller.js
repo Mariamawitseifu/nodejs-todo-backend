@@ -1,16 +1,14 @@
 // Database pool
-const db = require("../db"); // pg Pool instance
+const { Task } = require("../models"); // Sequelize models
 
 // Helper to send all active tasks for the authenticated user
 const sendTasks = async (req, res, next) => {
   try {
-    const { rows } = await db.query(
-      `SELECT id, userId, title, description, notes, date, time, duration, category_id AS "categoryId", completed, active, createDate, modifyDate 
-       FROM tasks 
-       WHERE userId = $1 AND active = true ORDER BY id`,
-      [req.userId]
-    );
-    return res.status(200).send({ data: rows });
+    const tasks = await Task.findAll({
+      where: { userId: req.userId, active: true },
+      order: [["id", "ASC"]],
+    });
+    return res.status(200).send({ data: tasks });
   } catch (err) {
     next(err);
   }
@@ -26,9 +24,11 @@ const updateTask = (column, value) => async (req, res, next) => {
     if (!_id) {
       return res.status(400).send({ message: "Missing task id" });
     }
-    const query = `UPDATE tasks SET ${column} = $1, modifyDate = NOW() WHERE id = $2 RETURNING *`;
-    const { rows } = await db.query(query, [value, _id]);
-    if (rows.length === 0) {
+    const [updated] = await Task.update(
+      { [column]: value, modifyDate: new Date() },
+      { where: { id: _id } }
+    );
+    if (updated === 0) {
       return res.status(400).send({ message: "Task not found" });
     }
     // Return refreshed task list
@@ -58,19 +58,16 @@ exports.createTask = async (req, res, next) => {
     if (!title) {
       return res.status(400).send({ message: "Task has no title" });
     }
-    const insertQuery = `INSERT INTO tasks 
-      (userId, title, description, notes, date, time, duration, category_id) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
-    await db.query(insertQuery, [
-      req.userId,
+    await Task.create({
+      userId: req.userId,
       title,
-      description || null,
-      notes || null,
-      date || null,
-      time || null,
-      duration || null,
-      categoryId || null,
-    ]);
+      description: description || null,
+      notes: notes || null,
+      date: date || null,
+      time: time || null,
+      duration: duration || null,
+      category_id: categoryId || null,
+    });
     await sendTasks(req, res, next);
   } catch (err) {
     next(err);

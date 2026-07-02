@@ -1,7 +1,7 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
+// Removed Mongoose import, using Sequelize
 const bodyParser = require("body-parser");
 
 dotenv.config();

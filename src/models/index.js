@@ -1,11 +1,5 @@
-const mongoose = require("mongoose");
+const sequelize = require('../db');
+const User = require('./user.model');
+const Task = require('./task.model');
 
-// Set Mongoose to use the global Promise object.
-mongoose.Promise = global.Promise;
-
-// Export an object with Mongoose and models.
-module.exports = {
-  mongoose: mongoose,
-  task: require("./task.model"),
-  user: require("./user.model"),
-};
+module.exports = { sequelize, User, Task };
