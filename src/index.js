@@ -44,6 +44,10 @@ app.use((err, req, res, next) => {
 db.query("SELECT 1")
   .then(() => {
     console.log("Database connection successful");
+    
+    // Start Cron Jobs for notifications
+    const { startCronJobs } = require("./cron");
+    startCronJobs();
 
     app.listen(process.env.APP_PORT, () => {
       console.log(`Server running on port ${process.env.APP_PORT}`);
