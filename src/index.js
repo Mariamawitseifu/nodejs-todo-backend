@@ -5,8 +5,7 @@ const bodyParser = require("body-parser");
 
 dotenv.config();
 
-const sequelize = require("./db");
-require("./models/user.model");
+const db = require("./db");
 
 const app = express();
 
@@ -38,16 +37,14 @@ app.get("/", (req, res) => {
   res.json({ message: "Server active." });
 });
 
-// THIS IS THE IMPORTANT PART
-sequelize
-  .sync() // or { force: true } for dev only
+// Test DB connection and start server
+db.query('SELECT 1')
   .then(() => {
-    console.log("Database synced");
-
+    console.log('Database connection successful');
     app.listen(process.env.APP_PORT, () => {
       console.log(`Server running on port ${process.env.APP_PORT}`);
     });
   })
   .catch((err) => {
-    console.error("DB sync error:", err);
+    console.error('DB connection error:', err);
   });
