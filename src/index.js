@@ -5,18 +5,10 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 dotenv.config();
-const db = require("./models");
-db.mongoose.connect(process.env.MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-let dbConnection = db.mongoose.connection;
-dbConnection.on("error", (error) => {
-  console.log("Error connecting to database: ", error.message);
-});
-dbConnection.once("open", () => {
-  console.log("connection to db established");
-});
+// PostgreSQL connection pool
+const db = require("./db"); // pg Pool instance
+// Ensure the pool is ready; any connection errors will be thrown on first query.
+
 
 const app = express();
 
