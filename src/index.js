@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Server active." });
 });
 
-// 🔥 THIS IS THE IMPORTANT PART
+// THIS IS THE IMPORTANT PART
 sequelize
   .sync() // or { force: true } for dev only
   .then(() => {
