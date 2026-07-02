@@ -1,4 +1,5 @@
-const db = require("../db");
+require('dotenv').config();
+const JWT_SECRET = process.env.SECRET_TOKEN || "default_secret_key";
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -11,7 +12,7 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     return res.status(403).send({ message: "No token provided!" });
   }
-  jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).send({ message: "Unauthorized!" });
     }
@@ -65,12 +66,13 @@ exports.login = async (req, res, next) => {
       return res.status(401).send({ message: "Invalid email and password combination." });
     }
     // Sign a JWT token (expires in 24h)
-    const token = jwt.sign({ id: user.id }, process.env.SECRET_TOKEN, { expiresIn: 86400 });
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: 86400 });
     res.status(200).send({
       id: user.id,
       username: user.username,
       email: user.email,
       accessToken: token,
+      token: token,
     });
   } catch (err) {
     next(err);

@@ -57,7 +57,7 @@ exports.createTask = async (req, res, next) => {
     if (!title) {
       return res.status(400).send({ message: "Task has no title" });
     }
-    const insertQuery = `INSERT INTO tasks (userId, title, description, notes, date, time, duration, category_id)
+    const insertQuery = `INSERT INTO tasks (user_id, title, description, notes, date, time, duration, category_id)
                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
     await db.query(insertQuery, [
       req.userId,
