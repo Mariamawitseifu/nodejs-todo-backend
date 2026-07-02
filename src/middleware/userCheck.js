@@ -1,29 +1,38 @@
-const db = require("../models");
-const User = db.user;
+const db = require("../db");
 
-checkDuplicateUsernameOrEmail = async (req, res, next) => {
+const checkDuplicateUsernameOrEmail = async (req, res, next) => {
   try {
-    const user = await User.findOne({
-      $or: [{ username: req.body.username }, { email: req.body.email }],
-    });
-    if (user) {
-      if (user.username === req.body.username) {
-        return res
-          .status(400)
-          .send({ message: "Failed! Username is already in use!" });
-      } else {
-        return res
-          .status(400)
-          .send({ message: "Failed! Email is already in use!" });
+    const { username, email } = req.body;
+
+    const { rows } = await db.query(
+      "SELECT username, email FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+
+    if (rows.length > 0) {
+      const user = rows[0];
+
+      if (user.username === username) {
+        return res.status(400).send({
+          message: "Failed! Username is already in use!",
+        });
+      }
+
+      if (user.email === email) {
+        return res.status(400).send({
+          message: "Failed! Email is already in use!",
+        });
       }
     }
+
     next();
   } catch (err) {
-    return res.status(500).send({ message: err.message });
+    return res.status(500).send({
+      message: err.message,
+    });
   }
 };
 
-const userCheck = {
+module.exports = {
   checkDuplicateUsernameOrEmail,
 };
-module.exports = userCheck;
