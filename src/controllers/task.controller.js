@@ -25,7 +25,7 @@ const updateTask = (column, value) => async (req, res, next) => {
     if (!_id) {
       return res.status(400).send({ message: "Missing task id" });
     }
-    const query = `UPDATE tasks SET ${column} = $1, modifyDate = NOW() WHERE id = $2 RETURNING *`;
+    const query = `UPDATE tasks SET ${column} = $1, modify_date = NOW() WHERE id = $2 RETURNING *`;
     const { rows } = await db.query(query, [value, _id]);
     if (rows.length === 0) {
       return res.status(400).send({ message: "Task not found" });
