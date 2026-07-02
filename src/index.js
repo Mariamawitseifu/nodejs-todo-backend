@@ -1,14 +1,12 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
-// Removed Mongoose import, using Sequelize
 const bodyParser = require("body-parser");
 
 dotenv.config();
-// PostgreSQL connection pool
-const db = require("./db"); // pg Pool instance
-// Ensure the pool is ready; any connection errors will be thrown on first query.
 
+const sequelize = require("./db"); // 🔥 Sequelize instance
+require("./models/User"); // 🔥 IMPORTANT: load models so Sequelize knows them
 
 const app = express();
 
@@ -29,17 +27,27 @@ app.use(function (req, res, next) {
 });
 
 app.use((err, req, res, next) => {
-  res.status(err.status || 500);
-  res.send({
+  res.status(err.status || 500).json({
     error: {
       message: err.message,
     },
   });
 });
+
 app.get("/", (req, res) => {
   res.json({ message: "Server active." });
 });
 
-app.listen(process.env.APP_PORT, () => {
-  console.log(`Example app listening on port ${process.env.APP_PORT}`);
-});
+// 🔥 THIS IS THE IMPORTANT PART
+sequelize
+  .sync() // or { force: true } for dev only
+  .then(() => {
+    console.log("Database synced");
+
+    app.listen(process.env.APP_PORT, () => {
+      console.log(`Server running on port ${process.env.APP_PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("DB sync error:", err);
+  });
