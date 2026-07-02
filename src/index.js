@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 
 dotenv.config();
 
-const sequelize = require("./db"); // 🔥 Sequelize instance
-require("./models/User"); // 🔥 IMPORTANT: load models so Sequelize knows them
+const sequelize = require("./db");
+require("./models/user.model");
 
 const app = express();
 
