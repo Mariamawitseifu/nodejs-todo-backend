@@ -1,5 +1,3 @@
-const sequelize = require('../db');
-const User = require('./user.model');
-const Task = require('./task.model');
+const db = require('../db');
+module.exports = { db };
 
-module.exports = { sequelize, User, Task };
