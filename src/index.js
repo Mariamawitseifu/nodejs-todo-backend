@@ -5,8 +5,6 @@ const bodyParser = require("body-parser");
 
 dotenv.config();
 
-const db = require("./db"); // pg Pool OR Sequelize connection (as you use it)
-
 const app = express();
 
 // Middleware
