@@ -1,70 +1,53 @@
-const db = require("../models");
-const User = db.user;
-
-const jwt = require("jsonwebtoken");
+const db = require("../db");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-exports.register = async (req, res) => {
+// Register a new user
+exports.register = async (req, res, next) => {
   try {
-    const givenUsername = req.body.username;
-    const givenMail = req.body.email;
-    const givenPass = req.body.password;
-    if (givenUsername && givenMail && givenPass) {
-      const user = new User({
-        username: givenUsername,
-        email: givenMail,
-        password: bcrypt.hashSync(givenPass, 8),
-      });
-      await user.save();
-      res.send({ message: "User registered successfully!" });
-    } else {
-      res.status(500).send({ message: "Missing info given" });
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).send({ message: "Missing registration fields" });
     }
+    const hash = bcrypt.hashSync(password, 8);
+    const insertQuery = `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *`;
+    const { rows } = await db.query(insertQuery, [username, email, hash]);
+    res.send({ message: "User registered successfully!", user: rows[0] });
   } catch (err) {
     next(err);
   }
 };
 
-exports.getUserData = async (req, res) => {
+// Get basic user data (username) for authenticated user
+exports.getUserData = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).exec();
-    res.send({ username: user.username });
+    const query = `SELECT username FROM users WHERE id = $1`;
+    const { rows } = await db.query(query, [req.userId]);
+    if (rows.length === 0) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    res.send({ username: rows[0].username });
   } catch (err) {
     next(err);
   }
 };
 
+// Login and return JWT token
 exports.login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email }).exec();
-    if (!user) {
-      return res.status(401).send({
-        accessToken: null,
-        message: "Invalid email and password combination.",
-      });
+    const { email, password } = req.body;
+    const query = `SELECT * FROM users WHERE email = $1`;
+    const { rows } = await db.query(query, [email]);
+    if (rows.length === 0) {
+      return res.status(401).send({ accessToken: null, message: "Invalid email and password combination." });
     }
-
-    const passwordIsValid = bcrypt.compareSync(
-      req.body.password,
-      user.password
-    );
+    const user = rows[0];
+    const passwordIsValid = bcrypt.compareSync(password, user.password);
     if (!passwordIsValid) {
-      return res.status(401).send({
-        accessToken: null,
-        message: "Invalid email and password combination.",
-      });
+      return res.status(401).send({ accessToken: null, message: "Invalid email and password combination." });
     }
-
-    const token = jwt.sign({ id: user.id }, process.env.SECRET_TOKEN, {
-      expiresIn: "24H", // 24 hours
-    });
-
-    res.status(200).send({
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      accessToken: token,
-    });
+    const token = jwt.sign({ id: user.id }, process.env.SECRET_TOKEN, { expiresIn: "24h" });
+    res.status(200).send({ id: user.id, username: user.username, email: user.email, accessToken: token });
   } catch (err) {
     next(err);
   }
