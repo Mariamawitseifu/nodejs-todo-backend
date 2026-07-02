@@ -1,5 +1,24 @@
 const db = require("../db");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const verifyToken = (req, res, next) => {
+  // Extract token from header (x-access-token or Authorization: Bearer <token>)
+  let token = req.headers["x-access-token"] || req.headers["authorization"];
+  if (token && token.startsWith("Bearer ")) {
+    token = token.slice(7).trim();
+  }
+  if (!token) {
+    return res.status(403).send({ message: "No token provided!" });
+  }
+  jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized!" });
+    }
+    req.userId = decoded.id;
+    next();
+  });
+};
 
 // Register a new user
 exports.register = async (req, res, next) => {
@@ -31,7 +50,7 @@ exports.getUserData = async (req, res, next) => {
   }
 };
 
-// Login without JWT token (simple success response)
+// Login – generate JWT token on successful authentication
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -45,9 +64,17 @@ exports.login = async (req, res, next) => {
     if (!passwordIsValid) {
       return res.status(401).send({ message: "Invalid email and password combination." });
     }
-    // No JWT token generated; return user info
-    res.status(200).send({ id: user.id, username: user.username, email: user.email, accessToken: null });
+    // Sign a JWT token (expires in 24h)
+    const token = jwt.sign({ id: user.id }, process.env.SECRET_TOKEN, { expiresIn: 86400 });
+    res.status(200).send({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      accessToken: token,
+    });
   } catch (err) {
     next(err);
   }
 };
+
+module.exports = { verifyToken, register: exports.register, getUserData: exports.getUserData, login: exports.login };
