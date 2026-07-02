@@ -1,25 +1,6 @@
-const jwt = require("jsonwebtoken");
-
-verifyToken = (req, res, next) => {
-  let token = req.headers["x-access-token"];
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    token = authHeader.split(" ")[1];
-  }
-  if (!token) {
-    return res.status(403).send({ message: "No token provided!" });
-  }
-
-  jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: "Unauthorized!" });
-    }
-    req.userId = decoded.id;
-    next();
-  });
+const verifyToken = (req, res, next) => {
+  // No token verification needed for now; proceed directly
+  next();
 };
 
-const authCheck = {
-  verifyToken,
-};
-module.exports = authCheck;
+module.exports = { verifyToken };

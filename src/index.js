@@ -2,12 +2,9 @@ const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
-dotenv.config();
-
 const db = require("./db");
-
 const app = express();
+const sequelize = require("./db");
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -35,17 +32,14 @@ app.use((err, req, res, next) => {
 
 app.get("/", (req, res) => {
   res.json({ message: "Server active." });
-});
-
-// Sync Sequelize models and start server
-sequelize
-  .sync()
-  .then(() => {
-    console.log("Database synced");
-    app.listen(process.env.APP_PORT, () => {
-      console.log(`Server running on port ${process.env.APP_PORT}`);
+  // Start server (optionally test DB connection)
+  db.query('SELECT 1')
+    .then(() => {
+      console.log('Database connection successful');
+      app.listen(process.env.APP_PORT, () => {
+        console.log(`Server running on port ${process.env.APP_PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('DB connection error:', err);
     });
-  })
-  .catch((err) => {
-    console.error("DB sync error:", err);
-  });

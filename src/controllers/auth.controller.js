@@ -1,6 +1,5 @@
 const db = require("../db");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 // Register a new user
 exports.register = async (req, res, next) => {
@@ -32,22 +31,22 @@ exports.getUserData = async (req, res, next) => {
   }
 };
 
-// Login and return JWT token
+// Login without JWT token (simple success response)
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const query = `SELECT * FROM users WHERE email = $1`;
     const { rows } = await db.query(query, [email]);
     if (rows.length === 0) {
-      return res.status(401).send({ accessToken: null, message: "Invalid email and password combination." });
+      return res.status(401).send({ message: "Invalid email and password combination." });
     }
     const user = rows[0];
     const passwordIsValid = bcrypt.compareSync(password, user.password);
     if (!passwordIsValid) {
-      return res.status(401).send({ accessToken: null, message: "Invalid email and password combination." });
+      return res.status(401).send({ message: "Invalid email and password combination." });
     }
-    const token = jwt.sign({ id: user.id }, process.env.SECRET_TOKEN, { expiresIn: "24h" });
-    res.status(200).send({ id: user.id, username: user.username, email: user.email, accessToken: token });
+    // No JWT token generated; return user info
+    res.status(200).send({ id: user.id, username: user.username, email: user.email, accessToken: null });
   } catch (err) {
     next(err);
   }
