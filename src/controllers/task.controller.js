@@ -4,8 +4,8 @@ const db = require('../db'); // pg Pool instance
 const sendTasks = async (req, res, next) => {
   try {
     const { rows } = await db.query(
-      `SELECT id, userId, title, description, notes, date, time, duration, category_id AS "categoryId", completed, active, createDate, modifyDate
-       FROM tasks WHERE userId = $1 AND active = true ORDER BY id`,
+      `SELECT id, user_id AS "userId", title, description, notes, date, time, duration, category_id AS "categoryId", completed, active, create_date AS "createDate", modify_date AS "modifyDate"
+       FROM tasks WHERE user_id = $1 AND active = true ORDER BY id`,
       [req.userId]
     );
     return res.status(200).send({ data: rows });
