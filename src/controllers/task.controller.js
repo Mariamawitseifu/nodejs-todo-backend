@@ -25,10 +25,10 @@ const updateTask = (column, value) => async (req, res, next) => {
     if (!_id) {
       return res.status(400).send({ message: "Missing task id" });
     }
-    const query = `UPDATE tasks SET ${column} = $1, modify_date = NOW() WHERE id = $2 RETURNING *`;
-    const { rows } = await db.query(query, [value, _id]);
+    const query = `UPDATE tasks SET ${column} = $1, modify_date = NOW() WHERE id = $2 AND user_id = $3 RETURNING *`;
+    const { rows } = await db.query(query, [value, _id, req.userId]);
     if (rows.length === 0) {
-      return res.status(400).send({ message: "Task not found" });
+      return res.status(400).send({ message: "Task not found or doesn't belong to you" });
     }
     // Return refreshed task list
     await sendTasks(req, res, next);
