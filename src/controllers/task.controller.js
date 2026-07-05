@@ -74,3 +74,12 @@ exports.createTask = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getCategories = async (req, res, next) => {
+  try {
+    const { rows } = await db.query('SELECT * FROM categories ORDER BY id');
+    return res.status(200).send({ data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
