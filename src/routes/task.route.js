@@ -6,6 +6,8 @@ const controller = require("../controllers/task.controller");
 //check login and use authentication
 router.get("/getTasks", [authCheck.verifyToken], controller.getTasks);
 
+router.get("/getArchivedTasks", [authCheck.verifyToken], controller.getArchivedTasks);
+
 router.get("/getCategories", [authCheck.verifyToken], controller.getCategories);
 
 router.post("/markDone", [authCheck.verifyToken], controller.markDone);

@@ -18,6 +18,19 @@ exports.getTasks = async (req, res, next) => {
   await sendTasks(req, res, next);
 };
 
+exports.getArchivedTasks = async (req, res, next) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, user_id AS "userId", title, description, notes, date, time, duration, category_id AS "categoryId", completed, active, create_date AS "createDate", modify_date AS "modifyDate"
+       FROM tasks WHERE user_id = $1 AND active = false ORDER BY id`,
+      [req.userId]
+    );
+    return res.status(200).send({ data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Generic update helper for a single column
 const updateTask = (column, value) => async (req, res, next) => {
   try {
