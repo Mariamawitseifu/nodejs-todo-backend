@@ -1,4 +1,5 @@
 const db = require('../db'); // pg Pool instance
+const { checkAndSendNotifications } = require('../cron');
 
 // Helper to send all active tasks for the authenticated user
 const sendTasks = async (req, res, next) => {
@@ -82,6 +83,7 @@ exports.createTask = async (req, res, next) => {
       duration || null,
       categoryId || null,
     ]);
+    await checkAndSendNotifications();
     await sendTasks(req, res, next);
   } catch (err) {
     next(err);
